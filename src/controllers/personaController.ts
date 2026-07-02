@@ -9,12 +9,13 @@ const saltRounds = 10;
 
 class PersonaController{
     async getPerson (req: Request, res: Response){
-        const [list] = await pool.query("SELECT * FROM persona");
-        res.json({
-            data: list,
-            status: true,
-            message: "Todo Correcto"
-        });
+      try{
+        const [list] = await pool.query<RowDataPacket[]>("SELECT * FROM persona");
+        return successResponse(res, 'Listado Correctamente', list);
+      }catch(error){
+        console.log('error al listar person');
+        return errorResponse(res, 'Error del Servidor');
+      }
     }
 
     async getOnePerson(req: Request, res: Response):Promise<any>{
@@ -30,7 +31,7 @@ class PersonaController{
           return successResponse(res, 'Listado Correctamente', list);
         }catch(error){
           console.log('Error al encontrar una persona', error);
-          errorResponse(res, 'Error del Servidor');
+          return errorResponse(res, 'Error del Servidor');
         }
     }
 
@@ -92,7 +93,7 @@ class PersonaController{
         } catch (error) {
             console.log('Error al Editar Persona', error);
             
-            errorResponse(res, 'Error al Editar Persona');
+            return errorResponse(res, 'Error al Editar Persona');
         }
     }
 
@@ -102,7 +103,7 @@ class PersonaController{
             const IdPersona = req.user.IdPersona; // o desde token (mejor)
       
           if (!req.file) {
-            return res.status(400).json({ error: 'No se envió imagen' });
+            return errorResponse(res, 'No se envió la imagen', 400);
           }
       
           const filePath = req.file.path; // 🔥 AQUÍ está la ruta real
@@ -111,14 +112,12 @@ class PersonaController{
             'UPDATE persona SET Foto = ? WHERE IdPersona = ?',
             [filePath, IdPersona]
           );
-      
-          res.json({
-            message: 'Foto actualizada',
-            foto: filePath
-          });
+          
+          return successResponse(res, 'Foto Actualizada', { foto: filePath });
       
         } catch (error) {
-          res.status(500).json({ error: 'Error al subir foto' });
+          console.log('Error al Actualizar foto de Perfil', error);
+          return errorResponse(res, 'Error del Servidor');
         }
       }
 }

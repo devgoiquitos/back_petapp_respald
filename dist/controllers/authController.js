@@ -19,6 +19,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const token_util_1 = require("../utils/token.util");
 /* carga variable de entorno */
 const dotenv_1 = __importDefault(require("dotenv"));
+const response_helper_1 = require("../helpers/response.helper");
 dotenv_1.default.config();
 const saltRounds = 10;
 const refresh = process.env.REFRESH_SECRET;
@@ -66,7 +67,7 @@ class AuthController {
                 // 🔍 Verificar si ya existe
                 const [rows] = yield database_1.default.query('SELECT * FROM persona WHERE Email = ?', [Email]);
                 if (rows.length > 0) {
-                    return res.status(400).json({ error: 'El usuario ya existe' });
+                    return (0, response_helper_1.errorResponse)(res, 'El Usuario ya Existe', 400);
                 }
                 // 🔐 Encriptar contraseña
                 const hashedPassword = yield bcrypt_1.default.hash(Password, saltRounds);
@@ -81,16 +82,11 @@ class AuthController {
                 // 🔑 Generar tokens (igual que login)
                 const accessToken = (0, token_util_1.generateAccessToken)(userLog);
                 const refreshToken = (0, token_util_1.generateRefreshToken)(userLog);
-                res.json({
-                    message: 'Usuario registrado correctamente',
-                    accessToken,
-                    refreshToken,
-                    userLog
-                });
+                return (0, response_helper_1.successResponse)(res, 'Usuario Creado Correctamente', { accessToken, refreshToken, userLog });
             }
             catch (error) {
-                console.log(error);
-                res.status(500).json({ error: 'Error en el registro' });
+                console.log('Error al Guardar Nuevo Usuario', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
         });
     }

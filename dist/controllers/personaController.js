@@ -21,12 +21,14 @@ const saltRounds = 10;
 class PersonaController {
     getPerson(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const [list] = yield database_1.default.query("SELECT * FROM persona");
-            res.json({
-                data: list,
-                status: true,
-                message: "Todo Correcto"
-            });
+            try {
+                const [list] = yield database_1.default.query("SELECT * FROM persona");
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
+            }
+            catch (error) {
+                console.log('error al listar person');
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+            }
         });
     }
     getOnePerson(req, res) {
@@ -42,7 +44,7 @@ class PersonaController {
             }
             catch (error) {
                 console.log('Error al encontrar una persona', error);
-                (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
         });
     }
@@ -95,7 +97,7 @@ class PersonaController {
             }
             catch (error) {
                 console.log('Error al Editar Persona', error);
-                (0, response_helper_1.errorResponse)(res, 'Error al Editar Persona');
+                return (0, response_helper_1.errorResponse)(res, 'Error al Editar Persona');
             }
         });
     }
@@ -105,17 +107,15 @@ class PersonaController {
             try {
                 const IdPersona = req.user.IdPersona; // o desde token (mejor)
                 if (!req.file) {
-                    return res.status(400).json({ error: 'No se envió imagen' });
+                    return (0, response_helper_1.errorResponse)(res, 'No se envió la imagen', 400);
                 }
                 const filePath = req.file.path; // 🔥 AQUÍ está la ruta real
                 yield database_1.default.query('UPDATE persona SET Foto = ? WHERE IdPersona = ?', [filePath, IdPersona]);
-                res.json({
-                    message: 'Foto actualizada',
-                    foto: filePath
-                });
+                return (0, response_helper_1.successResponse)(res, 'Foto Actualizada', { foto: filePath });
             }
             catch (error) {
-                res.status(500).json({ error: 'Error al subir foto' });
+                console.log('Error al Actualizar foto de Perfil', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
         });
     }

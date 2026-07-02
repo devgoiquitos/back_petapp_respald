@@ -7,6 +7,8 @@ import { generateAccessToken, generateRefreshToken } from '../utils/token.util';
 
 /* carga variable de entorno */
 import dotenv from 'dotenv';
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { errorResponse, successResponse } from "../helpers/response.helper";
 dotenv.config();
 
 const saltRounds = 10;
@@ -62,20 +64,20 @@ class AuthController{
       try {
     
         // 🔍 Verificar si ya existe
-        const [rows]: any = await pool.query(
+        const [rows] = await pool.query<RowDataPacket[]>(
           'SELECT * FROM persona WHERE Email = ?', 
           [Email]
         );
     
         if (rows.length > 0) {
-          return res.status(400).json({ error: 'El usuario ya existe' });
+          return errorResponse(res, 'El Usuario ya Existe', 400);
         }
     
         // 🔐 Encriptar contraseña
         const hashedPassword = await bcrypt.hash(Password, saltRounds);
     
         // 💾 Insertar usuario
-        const [result]: any = await pool.query(
+        const [result] = await pool.query<ResultSetHeader>(
           'INSERT INTO persona (IdTipoPersona, IdTipoDocumento, NumDocumento, Nombres, Apellidos, Direccion, Referencia, Ciudad, Nacimiento, Email, Foto, Usuario, Password, Estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [IdTipoPersona, IdTipoDocumento, NumDocumento, Nombres, Apellidos, Direccion, Referencia, Ciudad, Nacimiento, Email, Foto, Usuario, hashedPassword, Estado]
           );
@@ -90,17 +92,12 @@ class AuthController{
         // 🔑 Generar tokens (igual que login)
         const accessToken = generateAccessToken(userLog);
         const refreshToken = generateRefreshToken(userLog);
-    
-        res.json({
-          message: 'Usuario registrado correctamente',
-          accessToken,
-          refreshToken,
-          userLog
-        });
+        
+        return successResponse(res, 'Usuario Creado Correctamente', { accessToken, refreshToken, userLog });
     
       } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Error en el registro' });
+        console.log('Error al Guardar Nuevo Usuario', error);
+        return errorResponse(res, 'Error del Servidor');
       }
     }
 
