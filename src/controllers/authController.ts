@@ -23,37 +23,34 @@ class AuthController{
         
         try {
           
-          const [rows]: any = await pool.query('SELECT * FROM persona WHERE Email = ?', [Email]);
+          const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM persona WHERE Email = ?', [Email]);
 
-          if (rows.length === 0) return res.status(401).json({ error: 'Usuario no encontrado' });
+          if (rows.length === 0) return errorResponse(res, 'Usuario no Encontrado', 400);
     
           const user = rows[0];
 
           const match = await bcrypt.compare(Password, user.Password);
 
-          if (!match) return res.status(401).json({ error: 'Contraseña incorrecta' });
+          if (!match) return errorResponse(res, 'Contraseña Incorrecta', 401);
 
           const payload = { IdPersona: user.IdPersona, Email: user.Email };
           const accessToken = generateAccessToken(payload);
           const refreshToken = generateRefreshToken(payload);
 
-          res.json({
-            message: 'Logeo exitoso',
-            accessToken,
-            refreshToken,
-            userLog:{
-              IdPersona: user.IdPersona,
-              Email: user.Email,
-              Nombres: user.Nombres,
-              Apellidos: user.Apellidos,
-              Foto: user.Foto
-            }
-          });
-    
+          return successResponse(res, 'Logueo Exitoso', { 
+            accessToken, 
+            refreshToken, 
+            userLog:{ 
+              IdPersona: user.IdPersona, 
+              Email: user.Email, 
+              Nombres: user.Nombres, 
+              Apellidos: user.Apellidos, 
+              Foto: user.Foto 
+            } 
+          });    
         } catch (error) {
-          console.log(error);
-          
-          res.status(500).json({ error: 'Error en el login' });
+          console.log('error al login', error);   
+          return errorResponse(res, 'Error del Servidor');
         }
     }
 

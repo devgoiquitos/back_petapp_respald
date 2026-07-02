@@ -32,16 +32,15 @@ class AuthController {
             try {
                 const [rows] = yield database_1.default.query('SELECT * FROM persona WHERE Email = ?', [Email]);
                 if (rows.length === 0)
-                    return res.status(401).json({ error: 'Usuario no encontrado' });
+                    return (0, response_helper_1.errorResponse)(res, 'Usuario no Encontrado', 400);
                 const user = rows[0];
                 const match = yield bcrypt_1.default.compare(Password, user.Password);
                 if (!match)
-                    return res.status(401).json({ error: 'Contraseña incorrecta' });
+                    return (0, response_helper_1.errorResponse)(res, 'Contraseña Incorrecta', 401);
                 const payload = { IdPersona: user.IdPersona, Email: user.Email };
                 const accessToken = (0, token_util_1.generateAccessToken)(payload);
                 const refreshToken = (0, token_util_1.generateRefreshToken)(payload);
-                res.json({
-                    message: 'Logeo exitoso',
+                return (0, response_helper_1.successResponse)(res, 'Logueo Exitoso', {
                     accessToken,
                     refreshToken,
                     userLog: {
@@ -54,8 +53,8 @@ class AuthController {
                 });
             }
             catch (error) {
-                console.log(error);
-                res.status(500).json({ error: 'Error en el login' });
+                console.log('error al login', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
         });
     }
