@@ -14,15 +14,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bannerController = void 0;
 const database_1 = __importDefault(require("../database"));
+const response_helper_1 = require("../helpers/response.helper");
 class BannerController {
     getListBanners(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const [list] = yield database_1.default.query('SELECT * FROM banner WHERE Estado = 1 AND NOW() BETWEEN FechaInicio AND FechaFin ORDER BY OrdenMostrar ASC LIMIT 5;');
-            res.json({
-                status: true,
-                message: 'Todo Ok',
-                data: list
-            });
+            try {
+                const [list] = yield database_1.default.query('SELECT * FROM banner WHERE Estado = 1 AND NOW() BETWEEN FechaInicio AND FechaFin ORDER BY OrdenMostrar ASC LIMIT 5;');
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
+            }
+            catch (error) {
+                console.log('Error al listar los banners', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+            }
         });
     }
 }

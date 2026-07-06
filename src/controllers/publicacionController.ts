@@ -1,131 +1,123 @@
 import { Request, Response } from "express";
+import { ResultSetHeader } from "mysql2";
 import pool from "../database";
+import { errorResponse, successResponse } from "../helpers/response.helper";
 
 class PublicacionController{
     async newPublicacion(req: Request, res: Response): Promise<any>{
+        const { IdPersona, IdPet, TipoPublicacion, Nombre_Contacto, Telefono_Contacto } = req.body;
         try {
-            const { IdPersona, IdPet, TipoPublicacion, Nombre_Contacto, Telefono_Contacto } = req.body;
-    
             if (!IdPersona || !IdPet || !TipoPublicacion) {
-                return res.status(400).json({
-                    status: false,
-                    message: 'Datos incompletos'
-                });
+                return errorResponse(res, 'Datos Incompletos', 400);
             }
     
-            const [result]: any = await pool.query(`
+            const [result] = await pool.query<ResultSetHeader>(`
                 INSERT INTO publicacion 
                 (IdPersona, IdPet, TipoPublicacion, Estado, Nombre_Contacto, Telefono_Contacto)
                 VALUES (?, ?, ?, 'pendiente', ?, ?)
             `, [IdPersona, IdPet, TipoPublicacion, Nombre_Contacto, Telefono_Contacto]);
-    
-            res.json({
-                status: true,
-                message: 'Registro Guardado Correctamente',
-                IdPublicacion: result.insertId
-            });
+            
+            return successResponse(res, 'Registro Guardado', { IdPublicacion: result.insertId });
     
         } catch (error) {
-            res.status(500).json({
-                status: false,
-                message: 'Error en el servidor'
-            });
+            console.log(res, 'error al guardar publicacion');
+            return errorResponse(res, 'Error del Servidor');
         }
     }
 
-    async listPubliAprobadas(req: Request, res: Response){
-        const [list] = await pool.query(`
-            SELECT 
-                p.*,
-                m.Nombre,
-                m.Tipo,
-                m.Edad,
-    
-                ma.Estado AS EstadoAdopcion,
-                ma.Vacunas_Completas,
-                ma.Castrado,
-    
-                mp.Lugar_Perdida,
-                mp.Fecha_Perdida
-    
-            FROM publicacion p
-            INNER JOIN pet m ON m.IdPet = p.IdPet
-    
-            LEFT JOIN mascota_adopcion ma ON ma.IdPet = m.IdPet
-            LEFT JOIN mascota_perdida mp ON mp.IdPet = m.IdPet
-    
-            WHERE p.Estado = 'aprobado'
-        `);
-    
-        res.json({
-            status: true,
-            message: 'Todo Ok',
-            data: list
-        });
+    async listPubliAprobadas(req: Request, res: Response): Promise<any>{
+        try{
+            const [list] = await pool.query(`
+                SELECT 
+                    p.*,
+                    m.Nombre,
+                    m.Tipo,
+                    m.Edad,
+        
+                    ma.Estado AS EstadoAdopcion,
+                    ma.Vacunas_Completas,
+                    ma.Castrado,
+        
+                    mp.Lugar_Perdida,
+                    mp.Fecha_Perdida
+        
+                FROM publicacion p
+                INNER JOIN pet m ON m.IdPet = p.IdPet
+        
+                LEFT JOIN mascota_adopcion ma ON ma.IdPet = m.IdPet
+                LEFT JOIN mascota_perdida mp ON mp.IdPet = m.IdPet
+        
+                WHERE p.Estado = 'aprobado'
+            `);
+        
+            return successResponse(res, 'Listado Correctamente', list);
+        }catch(error){
+            console.log('error al listar lista de publicacion aprobada', error);
+            return errorResponse(res, 'Error del Servidor');
+        }
     }
 
     async AprobarPublicacion(req: Request, res: Response): Promise<any>{
         const { IdPublicacion } = req.params;
-
-        if (!IdPublicacion) {
-            return res.status(400).json({
-                status: false,
-                message: 'Id requerido'
-            });
+        try{
+            if (!IdPublicacion) {
+                return errorResponse(res, 'Id Requerido', 401);
+            }
+    
+            await pool.query(`UPDATE publicacion
+            SET Estado = 'aprobado',
+                Fecha_Aprobacion = CURRENT_TIMESTAMP
+            WHERE IdPublicacion = ?
+            `, [IdPublicacion]);
+    
+            return successResponse(res, 'Aprobado Correctamente');
+        }catch(error){
+            console.log('error al aprobar solicitud', error);
+            return errorResponse(res, 'Error del Servidor');
         }
 
-        await pool.query(`UPDATE publicacion
-        SET Estado = 'aprobado',
-            Fecha_Aprobacion = CURRENT_TIMESTAMP
-        WHERE IdPublicacion = ?
-        `, [IdPublicacion]);
-
-        res.json({
-            status: true,
-            message: 'Aprobado Correctamente'
-        });
     }
 
     async RechazarPublicacion(req: Request, res: Response):Promise<any>{
         const { IdPublicacion } = req.params;
-
-        if (!IdPublicacion) {
-            return res.status(400).json({
-                status: false,
-                message: 'Id requerido'
-            });
+        try{
+            if (!IdPublicacion) {
+                return errorResponse(res, 'Id Requerido', 401);
+            }
+    
+            await pool.query(`UPDATE publicacion
+            SET Estado = 'rechazado',
+                Fecha_Rechazo = CURRENT_TIMESTAMP
+            WHERE IdPublicacion = ?
+            `, [IdPublicacion]);
+    
+            return successResponse(res, 'Rechazado Correctamente');
+        }catch(error){
+            console.log('Error al rechazar publicacion', error);
+            return errorResponse(res, 'Error del Servidor');
         }
-
-        await pool.query(`UPDATE publicacion
-        SET Estado = 'rechazado',
-            Fecha_Rechazo = CURRENT_TIMESTAMP
-        WHERE IdPublicacion = ?
-        `, [IdPublicacion]);
-
-        res.json({
-            status: true,
-            message: 'Rechazado Correctamente'
-        });
     }
 
 
     /* para listar en un dashboard angular */
-    async listPendientes(req: Request, res: Response){
-        const [list] = await pool.query(`
-            SELECT 
-                p.*,
-                m.Nombre,
-                m.Tipo
-            FROM publicacion p
-            INNER JOIN pet m ON m.IdPet = p.IdPet
-            WHERE p.Estado = 'pendiente'
-            ORDER BY p.Fecha_Creacion DESC
-        `);
-    
-        res.json({
-            status: true,
-            data: list
-        });
+    async listPendientes(req: Request, res: Response): Promise<any>{
+        try{
+            const [list] = await pool.query(`
+                SELECT 
+                    p.*,
+                    m.Nombre,
+                    m.Tipo
+                FROM publicacion p
+                INNER JOIN pet m ON m.IdPet = p.IdPet
+                WHERE p.Estado = 'pendiente'
+                ORDER BY p.Fecha_Creacion DESC
+            `);
+        
+            return successResponse(res, 'Listado Correctamente', list);
+        }catch(error){
+            console.log('Error listar Publicaciones', error);
+            return errorResponse(res, 'error del servidor');
+        }
     }
 }
 

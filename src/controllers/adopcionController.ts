@@ -76,31 +76,31 @@ class AdopcionController{
     }
   }
 
-  async listAdoption(req: Request, res: Response){
+  async listAdoption(req: Request, res: Response): Promise<any>{
       const { IdPersona } = req.params;
-      const [ list ] = await pool.query(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, tm.Descripcion AS Tipo, r.Descripcion AS Raza, c.Descripcion AS Color, p.Foto 
-      FROM solicitud_adopcion sa
-      INNER JOIN mascota_adopcion ma 
-        ON sa.IdMascotaAdopcion = ma.IdMascotaAdopcion
-      INNER JOIN pet p
-        ON ma.IdPet = p.IdPet
-      INNER JOIN tipomascota tm
-        ON p.IdTipoMascota = tm.IdTipoMascota
-      INNER JOIN raza r
-        ON p.IdRaza = r.IdRaza
-      INNER JOIN color c
-        ON p.IdColor = c.IdColor
-      WHERE sa.IdPersona = ?
-      ORDER BY sa.Fecha_Solicitud DESC;`,  [IdPersona]);
-
-      res.json({
-          status: true,
-          message: 'Todo Ok',
-          data: list
-      });
+      try{
+        const [ list ] = await pool.query< RowDataPacket[]>(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, tm.Descripcion AS Tipo, r.Descripcion AS Raza, c.Descripcion AS Color, p.Foto 
+        FROM solicitud_adopcion sa
+        INNER JOIN mascota_adopcion ma 
+          ON sa.IdMascotaAdopcion = ma.IdMascotaAdopcion
+        INNER JOIN pet p
+          ON ma.IdPet = p.IdPet
+        INNER JOIN tipomascota tm
+          ON p.IdTipoMascota = tm.IdTipoMascota
+        INNER JOIN raza r
+          ON p.IdRaza = r.IdRaza
+        INNER JOIN color c
+          ON p.IdColor = c.IdColor
+        WHERE sa.IdPersona = ?
+        ORDER BY sa.Fecha_Solicitud DESC;`,  [IdPersona]);
+        return successResponse(res, 'Listado Correctamente', list);
+      }catch(error){
+        console.log('Error al listar mascotas en espera', error);
+        return errorResponse(res, 'error del Servidor');
+      }
   }
   
-  async actualizarEstadoSolicitud(req: Request, res: Response){
+  async actualizarEstadoSolicitud(req: Request, res: Response): Promise<any>{
 
     const { IdSolicitud, EstadoNuevo } = req.body;
   
@@ -136,18 +136,14 @@ class AdopcionController{
       `,[IdSolicitud, estadoAnterior, EstadoNuevo]);
   
       await conn.commit();
-  
-      res.json({ status:true });
-  
+      
+      return successResponse(res, 'Cambiado Correctamente');
     }catch(error){
-  
       await conn.rollback();
-      res.status(500).json(error);
-  
+      console.log('Error al cambiar de estado', error);
+      return errorResponse(res, 'Error del Servidor');
     }finally{
-  
       conn.release();
-  
     }
   
   }

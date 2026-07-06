@@ -63,30 +63,20 @@ class DoctorController{
     async doctorFavorito(req: Request, res: Response): Promise<any> {
         const { IdPersona, IdDoctor } = req.body;
         if( !IdPersona || !IdDoctor){
-            return res.status(400).json({ status: false, message: 'Se requiere los IDs correspondientes'});
+            return errorResponse(res, 'Se requieres los IDs', 400);
         }
         try{
-            const [rows]: any = await pool.query('SELECT * FROM favdoc where IdPersona = ? and IdDoctor = ?', [IdPersona, IdDoctor]);
+            const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM favdoc where IdPersona = ? and IdDoctor = ?', [IdPersona, IdDoctor]);
             if ( rows.length > 0){
                 await pool.query('DELETE FROM favdoc where IdPersona = ? and IdDoctor = ?', [IdPersona, IdDoctor]);
-                return res.json({
-                    message: 'Elimado Correctamente',
-                    status: true
-                })
+                return successResponse(res, 'Eliminado Correctamente'); 
             }else{
                 await pool.query('INSERT INTO favdoc (IdPersona, IdDoctor) values (?,?)', [IdPersona, IdDoctor]);
-                return res.json({
-                    message: 'Marcado Favorito',
-                    status: true
-                })
+                return successResponse(res, 'Marcado como Favorito');
             }
-        }catch(error: any){
+        }catch(error){
             console.error('Error en doctorFavorito:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Error en el servidor',
-                error: error.message, // 🟧 Añade mensaje para depurar
-            });
+            return errorResponse(res, 'Error del Servidor');
         }
     }
 }

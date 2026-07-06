@@ -26,9 +26,8 @@ class FundacionController{
 
 
     public async getOneFundation(req: Request, res: Response): Promise<any>{
+        const { IdFundacion } = req.params;
         try {
-            const { IdFundacion } = req.params;
-    
             const [fundacionRows] = await pool.query<RowDataPacket[]>(
                 'SELECT * FROM fundacion WHERE IdFundacion = ?',
                 [IdFundacion]

@@ -18,8 +18,8 @@ const response_helper_1 = require("../helpers/response.helper");
 class NotificacionController {
     listNotificacion(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { IdPersona } = req.params;
             try {
-                const { IdPersona } = req.params;
                 const [list] = yield database_1.default.query('SELECT n.IdNotificacion, n.IdPersona, n.IdTipoNoficacion, n.Titulo, n.Descripcion, tn.Icono, n.Estado FROM notificacion n INNER JOIN tipo_notificacion tn ON n.IdTipoNoficacion = tn.IdTipoNoficacion WHERE IdPersona = ?', [IdPersona]);
                 return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
             }

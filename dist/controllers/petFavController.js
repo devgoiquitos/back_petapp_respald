@@ -25,7 +25,7 @@ class PetFavController {
             }
             catch (error) {
                 console.log('Error al listar mascotas favoritas', error);
-                (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
         });
     }

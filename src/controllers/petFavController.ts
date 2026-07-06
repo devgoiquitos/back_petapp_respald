@@ -11,7 +11,7 @@ class PetFavController{
             return successResponse(res, 'Listado Correctamente', list);
         }catch(error){
             console.log('Error al listar mascotas favoritas', error);
-            errorResponse(res, 'Error del Servidor');
+            return errorResponse(res, 'Error del Servidor');
         }
     }
 

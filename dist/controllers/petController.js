@@ -133,8 +133,8 @@ class PetController {
     }
     listPetAdoption(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { IdPersona } = req.params;
             try {
-                const { IdPersona } = req.params;
                 const [list] = yield database_1.default.query(`
         SELECT 
         p.IdPet,
@@ -239,7 +239,7 @@ class PetController {
     `, [IdPersona, IdPet]);
                 if (list.length === 0)
                     return (0, response_helper_1.errorResponse)(res, 'Mascota no encontrada', 404);
-                return (0, response_helper_1.successResponse)(res, 'Todo Ok', list);
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
             }
             catch (error) {
                 console.log('List PetOne Adoption', error);
@@ -249,8 +249,8 @@ class PetController {
     }
     listMyAdoptions(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { IdPersona } = req.params;
             try {
-                const { IdPersona } = req.params;
                 const [list] = yield database_1.default.query(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, p.Apellidos, p.Edad, p.Foto,
       tm.Descripcion AS TipoMascota, p.Peso
       

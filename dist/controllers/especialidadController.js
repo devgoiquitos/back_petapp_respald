@@ -14,15 +14,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.especialidadController = void 0;
 const database_1 = __importDefault(require("../database"));
+const response_helper_1 = require("../helpers/response.helper");
 class EspecialidadController {
     listEspecialidad(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const [list] = yield database_1.default.query('SELECT * FROM especialidad');
-            res.json({
-                message: 'Todo Ok',
-                status: true,
-                data: list
-            });
+            try {
+                const [list] = yield database_1.default.query('SELECT * FROM especialidad');
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
+            }
+            catch (error) {
+                console.log('Error al listar las especialidades del doctor', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+            }
         });
     }
 }

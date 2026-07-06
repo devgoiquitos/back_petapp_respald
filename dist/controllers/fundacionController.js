@@ -42,8 +42,8 @@ class FundacionController {
     }
     getOneFundation(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { IdFundacion } = req.params;
             try {
-                const { IdFundacion } = req.params;
                 const [fundacionRows] = yield database_1.default.query('SELECT * FROM fundacion WHERE IdFundacion = ?', [IdFundacion]);
                 if (fundacionRows.length === 0) {
                     return (0, response_helper_1.errorResponse)(res, 'Fundacion no encontrada', 404);

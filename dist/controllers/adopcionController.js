@@ -75,25 +75,27 @@ class AdopcionController {
     listAdoption(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { IdPersona } = req.params;
-            const [list] = yield database_1.default.query(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, tm.Descripcion AS Tipo, r.Descripcion AS Raza, c.Descripcion AS Color, p.Foto 
-      FROM solicitud_adopcion sa
-      INNER JOIN mascota_adopcion ma 
-        ON sa.IdMascotaAdopcion = ma.IdMascotaAdopcion
-      INNER JOIN pet p
-        ON ma.IdPet = p.IdPet
-      INNER JOIN tipomascota tm
-        ON p.IdTipoMascota = tm.IdTipoMascota
-      INNER JOIN raza r
-        ON p.IdRaza = r.IdRaza
-      INNER JOIN color c
-        ON p.IdColor = c.IdColor
-      WHERE sa.IdPersona = ?
-      ORDER BY sa.Fecha_Solicitud DESC;`, [IdPersona]);
-            res.json({
-                status: true,
-                message: 'Todo Ok',
-                data: list
-            });
+            try {
+                const [list] = yield database_1.default.query(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, tm.Descripcion AS Tipo, r.Descripcion AS Raza, c.Descripcion AS Color, p.Foto 
+        FROM solicitud_adopcion sa
+        INNER JOIN mascota_adopcion ma 
+          ON sa.IdMascotaAdopcion = ma.IdMascotaAdopcion
+        INNER JOIN pet p
+          ON ma.IdPet = p.IdPet
+        INNER JOIN tipomascota tm
+          ON p.IdTipoMascota = tm.IdTipoMascota
+        INNER JOIN raza r
+          ON p.IdRaza = r.IdRaza
+        INNER JOIN color c
+          ON p.IdColor = c.IdColor
+        WHERE sa.IdPersona = ?
+        ORDER BY sa.Fecha_Solicitud DESC;`, [IdPersona]);
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
+            }
+            catch (error) {
+                console.log('Error al listar mascotas en espera', error);
+                return (0, response_helper_1.errorResponse)(res, 'error del Servidor');
+            }
         });
     }
     actualizarEstadoSolicitud(req, res) {
@@ -123,11 +125,12 @@ class AdopcionController {
         VALUES (?, ?, ?, NOW())
       `, [IdSolicitud, estadoAnterior, EstadoNuevo]);
                 yield conn.commit();
-                res.json({ status: true });
+                return (0, response_helper_1.successResponse)(res, 'Cambiado Correctamente');
             }
             catch (error) {
                 yield conn.rollback();
-                res.status(500).json(error);
+                console.log('Error al cambiar de estado', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
             }
             finally {
                 conn.release();

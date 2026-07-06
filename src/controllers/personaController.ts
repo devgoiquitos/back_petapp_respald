@@ -8,7 +8,7 @@ import { RowDataPacket } from "mysql2";
 const saltRounds = 10;
 
 class PersonaController{
-    async getPerson (req: Request, res: Response){
+    async getPerson (req: Request, res: Response): Promise<any>{
       try{
         const [list] = await pool.query<RowDataPacket[]>("SELECT * FROM persona");
         return successResponse(res, 'Listado Correctamente', list);
@@ -98,7 +98,7 @@ class PersonaController{
     }
 
     /* EDIT PHOTO */
-    public async editPhoto(req: any, res: Response) {
+    public async editPhoto(req: any, res: Response) : Promise<any>{
         try {
             const IdPersona = req.user.IdPersona; // o desde token (mejor)
       

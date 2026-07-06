@@ -119,8 +119,8 @@ class PetController{
     }
   }
   public async listPetAdoption(req: Request, res: Response): Promise<any>{
+    const { IdPersona } = req.params;
     try{
-      const { IdPersona } = req.params;
       const [list] = await  pool.query<RowDataPacket[]>(`
         SELECT 
         p.IdPet,
@@ -225,18 +225,17 @@ class PetController{
 
     if (list.length === 0) return errorResponse(res, 'Mascota no encontrada', 404);
 
-    return successResponse(res, 'Todo Ok', list);
+    return successResponse(res, 'Listado Correctamente', list);
 
     }catch(error){
-      console.log('List PetOne Adoption', error);
-      
+      console.log('List PetOne Adoption', error);  
       return errorResponse(res, 'Error interno del servidor');
     }
   }
 
   async listMyAdoptions(req: Request, res: Response): Promise<any>{
+    const { IdPersona } = req.params;
     try{
-      const { IdPersona } = req.params;
       const [ list ] = await pool.query(`SELECT sa.IdSolicitud, sa.Estado_Solicitud, sa.Fecha_Solicitud, p.Nombre, p.Apellidos, p.Edad, p.Foto,
       tm.Descripcion AS TipoMascota, p.Peso
       
