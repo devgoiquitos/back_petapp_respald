@@ -19,6 +19,7 @@ class DonacionRoutes{
         );
         this.router.get('/listmethod/:IdFundacion', donacionController.listMetodoDonacion);
         this.router.get('/list-donation/:IdPersona', donacionController.listDonacion);
+        this.router.get('/list-donation/:IdPersona/:IdDonacion', donacionController.getOneDonation);
     }
 }
 

@@ -47,7 +47,7 @@ class DonacionController{
     async listDonacion(req: Request, res: Response): Promise<any>{
         const { IdPersona } = req.params;
         try{
-            const [ list ] : any[] = await pool.query<RowDataPacket[]>('SELECT d.IdDonacion, d.Tipo_Moneda, d.Monto, d.MetodoPago, d.Fecha, d.Estado, f.Nombre   AS Fundacion, f.Img_Principal , f.Ubicacion FROM donacion d INNER JOIN fundacion f ON d.IdFundacion = f.IdFundacion WHERE d.IdPersona = ?', [ IdPersona ]);
+            const [ list ] = await pool.query<RowDataPacket[]>('SELECT d.IdDonacion, d.Tipo_Moneda, d.Monto, d.MetodoPago, d.Fecha, d.Estado, f.Nombre   AS Fundacion, f.Img_Principal , f.Ubicacion FROM donacion d INNER JOIN fundacion f ON d.IdFundacion = f.IdFundacion WHERE d.IdPersona = ?', [ IdPersona ]);
             
             const Pendientes = list.filter((d: any) => d.Estado === 'pendiente');
             const Aprobadas  = list.filter((d: any) => d.Estado === 'aprobado');
@@ -56,6 +56,18 @@ class DonacionController{
             return successResponse(res, 'Listado Correctamente', { Pendientes, Aprobadas, Rechazadas, contadores: { pendientes: Pendientes.length, aprobadas: Aprobadas.length, rechazadas: Rechazadas.length } });
         }catch(error){
             console.log('Error en listado de donaciones hechas', error);
+            return errorResponse(res, 'Error del Servidor');
+        }
+    }
+
+    async getOneDonation(req: Request, res: Response): Promise<any>{
+        const { IdPersona, IdDonacion } = req.params;
+        try{
+            const [ list ] = await pool.query<RowDataPacket[]>('SELECT d.IdDonacion, d.Tipo_Moneda, d.Monto, d.MetodoPago, d.Mensaje, d.Comprobante, d.Fecha, d.Estado, f.Nombre   AS Fundacion, f.Img_Principal , f.Ubicacion FROM donacion d INNER JOIN fundacion f ON d.IdFundacion = f.IdFundacion WHERE d.IdPersona = ? and d.IdDonacion = ?', [ IdPersona, IdDonacion ]);
+
+            return successResponse(res, 'Listado Correctamente', list);
+        }catch(error){
+            console.log('Error en listado de donaciones unica', error);
             return errorResponse(res, 'Error del Servidor');
         }
     }

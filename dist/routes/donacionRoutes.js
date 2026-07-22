@@ -14,6 +14,7 @@ class DonacionRoutes {
         this.router.post('/create', exports.uploadVoucher.single('Comprobante'), donacionController_1.donacionController.insertDonacion);
         this.router.get('/listmethod/:IdFundacion', donacionController_1.donacionController.listMetodoDonacion);
         this.router.get('/list-donation/:IdPersona', donacionController_1.donacionController.listDonacion);
+        this.router.get('/list-donation/:IdPersona/:IdDonacion', donacionController_1.donacionController.getOneDonation);
     }
 }
 const donacionRoutes = new DonacionRoutes();

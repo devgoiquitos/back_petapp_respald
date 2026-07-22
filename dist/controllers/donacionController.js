@@ -70,5 +70,18 @@ class DonacionController {
             }
         });
     }
+    getOneDonation(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { IdPersona, IdDonacion } = req.params;
+            try {
+                const [list] = yield database_1.default.query('SELECT d.IdDonacion, d.Tipo_Moneda, d.Monto, d.MetodoPago, d.Mensaje, d.Comprobante, d.Fecha, d.Estado, f.Nombre   AS Fundacion, f.Img_Principal , f.Ubicacion FROM donacion d INNER JOIN fundacion f ON d.IdFundacion = f.IdFundacion WHERE d.IdPersona = ? and d.IdDonacion = ?', [IdPersona, IdDonacion]);
+                return (0, response_helper_1.successResponse)(res, 'Listado Correctamente', list);
+            }
+            catch (error) {
+                console.log('Error en listado de donaciones unica', error);
+                return (0, response_helper_1.errorResponse)(res, 'Error del Servidor');
+            }
+        });
+    }
 }
 exports.donacionController = new DonacionController();
